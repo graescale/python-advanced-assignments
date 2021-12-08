@@ -5,7 +5,7 @@
 # Anim Sim creates additive animation layers to simulate the motion of self-balancing objects.
 #
 # There are two modes: Calculating an object's rotation based on its translation (deriveRotation)
-# and calcutating an object's translation based on its rotation. (integrateTranslation)
+# and calculating an object's translation based on its rotation. (integrateTranslation)
 # 
 # Requires module, 'sciPy', not loaded in Maya 2018 by default as of 2021-08
 # To launch Maya with sciPy module run:
@@ -312,7 +312,7 @@ class Flyer:
         cmds.animLayer(layerName, edit=True, addSelectedObjects=True)
 
 
-
+# UI
 class AnimSim():
     
     
