@@ -312,7 +312,7 @@ class Flyer:
         cmds.animLayer(layerName, edit=True, addSelectedObjects=True)
 
 
-# UI
+# Create UI
 class AnimSim():
     
     
