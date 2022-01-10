@@ -33,3 +33,57 @@ NOTE: Upload only the final result.
 
 
 """
+
+class Object:
+   def __init__(self, name):
+      self.name        = name
+      self.scale       = []
+      self.rotate      = []
+      self.translate   = []
+
+
+class Cube(Object):
+   def __init__(self, name):
+      super().__init__(name)
+      self.color = [255, 255, 255]
+
+   def print_translate(self):
+      print('\n{} translate: {} '.format(self.name, self.translate))
+
+   def print_rotate(self):
+      print('\n{} rotate: {} '.format(self.name, self.rotate))
+  
+   def print_scale(self):
+      print('\n{} scale: {} '.format(self.name, self.scale))
+ 
+   def print_color(self):
+      print('\n{} color: {} '.format(self.name, self.color))
+
+   def print_status(self):
+      print('\n')
+      print('---------------------------')
+      for var in self.__dict__:
+         print('{} : {}'.format(var, self.__dict__[var]))
+         print('---------------------------')
+
+   def update_transform(self, ttype, value):
+      attributes = {'translate':self.print_translate,
+                    'rotate'   :self.print_rotate,
+                    'scale'    :self.print_scale,
+                    'color'    :self.print_color}
+      setattr(self, ttype, value)
+      attributes[ttype]() 
+
+
+albert = Cube('albert')
+bernice = Cube('bernice')
+charlie = Cube('charlie')
+
+#
+albert.print_status()
+bernice.update_transform('color', [180, 360, 90])
+
+
+
+print('\n')
+print("Done")

@@ -11,8 +11,7 @@
 # author = Grae Revell <grae.revell@gmail.com>
 #*******************************************************************************
 
-import numpy as np
-import scipy.signal
+from animsim.helpers import *
 
 import pymel.core as pm
 import maya.cmds as cmds
@@ -23,6 +22,14 @@ import maya.cmds as cmds
 ROTATION_LAYER = 'auto_rotation_layer'
 TRANSLATION_LAYER = 'auto_translation_layer'
 
+#*******************************************************************************
+# CLASS
+#
+# The main reason I used a class here is becuase the user may need to run the
+# script on multiple Maya objects. By creating a class I can store and access
+# all the relevant data in a single object and create as many instances of it as
+# necessary.
+# 
 
 class Flyer:
     def __init__(self, name):
@@ -45,6 +52,7 @@ class Flyer:
         self.smoothness = 0
         self.parent_state = None
         self.parent_value = ''
+        self.auto_roll = None
 
 
 #*******************************************************************************
@@ -107,101 +115,7 @@ class Flyer:
         cmds.bakeResults(buffer_raw + '.translate', buffer_raw + '.rotate', t=time_range, sb=1)
         cmds.delete('buffer_constraint')
 
-
-#*******************************************************************************
-# HELPERS (MODULES?)
-
-
-    def get_derivative(self, anim_data, degree, filter_data, window, order=3):
-        """ Returns a list containing n degree derivative of supplied list.
-        
-        Args:
-            anim_data (list): The data to get derivatives from.
-            degree (int): The number of derivatives to calculate.
-            filter_data (bool): Option to smooth the data after deriving.
-            window (int): The filter window size.
-            order (int): The filter polynomial order. Default 3
-
-        Returns:
-            list: The n degree derivative of anim_data
-         """
-
-        print('|get_derivative|')
-        # Initialize data
-        data_to_derive = anim_data
-        deriv_result = []
-        count = 1
-        while count <= degree:
-            deriv_result = np.diff(data_to_derive)        
-            deriv_result = np.insert(deriv_result,0,0)
-            data_to_derive = deriv_result
-            count = count + 1
-        if filter_data == True:
-            deriv_result = scipy.signal.savgol_filter(deriv_result, window, order)            
-        return deriv_result
-
-
-    def get_integral(self, anim_data, degree):
-        """ Returns a list containing the n degree integral of the supplied list.
-        
-        Args:
-            anim_data (list): The data to get derivatives from.
-            degree (int): The number of derivatives to calculate.
-
-        Returns:
-            list: The n degree integral of anim_data
-        """
-
-        print('|get_integral|')
-        # velocity(t) - velocity(t - 1) = acceleration(t)
-        # velocity(t) = acceleration(t) + velocity(t -1)
-        data_to_integrate = anim_data      
-        count = 1
-        while count <= degree:
-            #print('Getting integral of degree: '+ str(count))
-            # Initialize integral_result.
-            integral_result = []
-            # Append the first value in data_to_integrate to integral_result's first element     
-            integral_result.append(data_to_integrate[0])
-            for idx, i in enumerate(data_to_integrate):
-                if idx > 0:
-                    integral_result.append(data_to_integrate[idx] + integral_result[idx - 1])
-            count = count + 1
-            data_to_integrate = integral_result
-        return integral_result 
-
-
-    def smooth_data(self, data, window, order):
-        """ Smooths list of numbers using Savitzky–Golay filter.
-        
-        Args:
-            data (list): The numbers to smooth.
-            window (int): The smoothing window size.
-            order (int): The polynomial order to use in the smoothing method.
-        Returns:
-            list: Smoothed data.
-        """
-
-        print('|smoothData|')
-        return scipy.signal.savgol_filter(data, window, order) 
-
  
-    def create_anim_layer(self, layer_name):
-        """ Creates an animation layer
-        
-        Args:
-            layer_name (str): The name of layer to be created
-
-        """
-        print('|create_anim_layer|')
-        # Make an animation layer if it doesn't already exist.
-        if not cmds.animLayer(layer_name, query=True, exists=True):
-           cmds.animLayer(layer_name)
-        # Add self to that animation layer.
-        cmds.select(self.name)
-        cmds.animLayer(layer_name, edit=True, addSelectedObjects=True)
-
-
 #*******************************************************************************
 # PROCESS
         
@@ -225,13 +139,6 @@ class Flyer:
         self.get_scene_data()
         raw_anim_data = self.get_anim_data(['translate' + axis_1, 'translate' + axis_2], autoRoll)
 
-        # Loop to replace next block
-        #axes = [axis_1, axis_2]
-        #for axis in axes:
-        #    raw_position + axis = raw_anim_data['translate' + axis]
-        #    self.pos + axis = self.smoothData(self.raw_pos_axis_1, window, polyOrder)   
-
-        # Should replace lines below with loop
         self.raw_pos_axis_1 = raw_anim_data['translate' + axis_1]
         self.raw_pos_axis_2 = raw_anim_data['translate' + axis_2]
         self.pos_axis_1 = self.smoothData(self.raw_pos_axis_1, window, polyOrder)
@@ -288,7 +195,7 @@ class Flyer:
         """
 
         print('|copy_to_rotation|')
-        self.create_anim_layer(self.rot_layer_name)
+        create_anim_layer(self, self.rot_layer_name)
         cmds.animLayer(self.rot_layer_name, edit=True, sel=True, prf=True)
 
         self.rot_axis_1 = self.accel_axis_2
@@ -315,7 +222,7 @@ class Flyer:
         """
 
         print('|copy_to_translation|')
-        self.create_anim_layer(self.trans_layer_name)
+        create_anim_layer(self, self.trans_layer_name)
         cmds.animLayer(self.trans_layer_name, edit=True, sel=True, prf=True)
 
         # Zip key_frames and position values lists into tuples and then into a dictionary
