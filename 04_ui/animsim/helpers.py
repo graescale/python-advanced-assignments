@@ -4,13 +4,14 @@
 # version      = 0.4.1
 # date         = 2021-12-19
 #
-# dependencies = Maya
+# dependencies = Maya, numpy, scipy
 #
 # author = Grae Revell <grae.revell@gmail.com>
 #*******************************************************************************
 
 import numpy as np
 import scipy.signal
+import maya.cmds as cmds
 
 def get_derivative(anim_data, degree, filter_data, window, order=3):
     """ Returns a list containing n degree derivative of supplied list.
@@ -74,7 +75,7 @@ def get_integral(anim_data, degree):
 
 
 def smooth_data(data, window, order):
-    """ Smooths list of numbers using Savitzky–Golay filter.
+    """ Smooths list of numbers using Savitzky-Golay filter.
     
     Args:
         data (list): The numbers to smooth.
@@ -84,12 +85,12 @@ def smooth_data(data, window, order):
         list: Smoothed data.
     """
 
-    print('|smoothData|')
+    print('|smooth_data|')
 
     return scipy.signal.savgol_filter(data, window, order) 
 
 
-def create_anim_layer(obejct, layer_name):
+def create_anim_layer(object, layer_name):
     """ Creates an animation layer
     
     Args:
